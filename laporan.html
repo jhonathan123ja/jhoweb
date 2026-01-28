@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan - Rekam Medis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- PDF Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        .export-section {
+            transition: all 0.3s ease;
+        }
+        .export-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-pdf {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-pdf::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-pdf:hover::before {
+            left: 100%;
+        }
+        .complete-report-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            border: none;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        .complete-report-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        .complete-report-btn:hover::before {
+            left: 100%;
+        }
+        .complete-report-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .export-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .export-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .export-btn:hover::before {
+            left: 100%;
+        }
+        .export-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+        .container-fluid {
+            animation: slideInUp 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .export-btn.loading {
+            pointer-events: none;
+            position: relative;
+            color: transparent !important;
+        }
+
+        .export-btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Laporan</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Rekap & Export</h2>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar"></i> Rekap Data
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="p-3 bg-primary text-white rounded stat-card fade-in">
+                                    <h4 id="totalDoctors" class="pulse">0</h4>
+                                    <small><i class="fas fa-user-md"></i> Dokter</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-success text-white rounded stat-card fade-in">
+                                    <h4 id="totalPatients" class="pulse">0</h4>
+                                    <small><i class="fas fa-users"></i> Pasien</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <div class="p-3 bg-warning text-white rounded stat-card fade-in">
+                                    <h4 id="totalMedicines" class="pulse">0</h4>
+                                    <small><i class="fas fa-pills"></i> Obat</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-info text-white rounded stat-card fade-in">
+                                    <h4 id="totalRecords" class="pulse">0</h4>
+                                    <small><i class="fas fa-notes-medical"></i> Rekam Medis</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card export-section">
+                    <div class="card-header">
+                        <i class="fas fa-download"></i> Export Data
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <h6><i class="fas fa-file-pdf text-danger"></i> PDF Format</h6>
+                                <button class="btn btn-primary btn-sm mb-2 w-100 btn-pdf export-btn" onclick="exportPatientsPDF()">
+                                    <i class="fas fa-users"></i> Pasien PDF
+                                </button>
+                                <button class="btn btn-success btn-sm mb-2 w-100 btn-pdf export-btn" onclick="exportDoctorsPDF()">
+                                    <i class="fas fa-user-md"></i> Dokter PDF
+                                </button>
+                                <button class="btn btn-warning btn-sm mb-2 w-100 btn-pdf export-btn" onclick="exportMedicinesPDF()">
+                                    <i class="fas fa-pills"></i> Obat PDF
+                                </button>
+                                <button class="btn btn-info btn-sm w-100 btn-pdf export-btn" onclick="exportRecordsPDF()">
+                                    <i class="fas fa-notes-medical"></i> Rekam Medis PDF
+                                </button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="text-center">
+                            <h6><i class="fas fa-chart-bar text-primary"></i> Laporan Lengkap</h6>
+                            <button class="btn complete-report-btn w-100 mb-2" onclick="exportCompleteReport()">
+                                <i class="fas fa-file-pdf"></i> Export Laporan Lengkap PDF
+                            </button>
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-outline-secondary btn-sm w-100" onclick="showPDFPreview()">
+                                        <i class="fas fa-eye"></i> Preview PDF
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-primary btn-sm w-100" onclick="showDateFilter()">
+                                        <i class="fas fa-calendar"></i> Filter Tanggal
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle"></i> Laporan komprehensif dengan semua data
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Preview Modal -->
+    <div class="modal fade" id="pdfPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-eye"></i> Preview PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Preview PDF akan ditampilkan di tab baru browser.
+                    </div>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary" onclick="generateAndPreviewPDF()">
+                            <i class="fas fa-file-pdf"></i> Generate & Preview PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Filter Modal -->
+    <div class="modal fade" id="dateFilterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-calendar"></i> Filter Tanggal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Tanggal Mulai</label>
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">Tanggal Akhir</label>
+                        <input type="date" class="form-control" id="endDate">
+                    </div>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-success" onclick="exportFilteredRecords()">
+                            <i class="fas fa-filter"></i> Export dengan Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('totalDoctors').textContent = doctors.length;
+            document.getElementById('totalPatients').textContent = patients.length;
+            document.getElementById('totalMedicines').textContent = medicines.length;
+            document.getElementById('totalRecords').textContent = records.length;
+        });
+
+        // PDF Export Functions (New and Improved)
+        function createPDFHeader(doc, title) {
+            // Header with logo/background
+            doc.setFillColor(41, 128, 185);
+            doc.rect(0, 0, 210, 30, 'F');
+
+            // Title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SISTEM REKAM MEDIS', 105, 15, { align: 'center' });
+
+            doc.setFontSize(14);
+            doc.text(title, 105, 25, { align: 'center' });
+
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+
+            return 40; // Return Y position after header
+        }
+
+        function createPDFFooter(doc, pageNumber) {
+            const pageHeight = doc.internal.pageSize.height;
+
+            // Footer line
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, pageHeight - 20, 190, pageHeight - 20);
+
+            // Footer text
+            doc.setFontSize(8);
+            doc.setTextColor(128, 128, 128);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 20, pageHeight - 15);
+            doc.text(`Halaman ${pageNumber}`, 190, pageHeight - 15, { align: 'right' });
+
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+        }
+
+        function exportPatientsPDF() {
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, 'LAPORAN DATA PASIEN');
+
+            // Summary
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Pasien: ${patients.length}`, 20, yPosition);
+            yPosition += 15;
+
+            // Table
+            const tableData = patients.map((patient, index) => [
+                index + 1,
+                patient.name || '-',
+                patient.age || '-',
+                patient.gender || '-',
+                patient.phone || '-',
+                patient.address || '-'
+            ]);
+
+            doc.autoTable({
+                head: [['No', 'Nama', 'Usia', 'Jenis Kelamin', 'Telepon', 'Alamat']],
+                body: tableData,
+                startY: yPosition,
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                margin: { top: 40 },
+            });
+
+            createPDFFooter(doc, 1);
+            doc.save('laporan-data-pasien.pdf');
+        }
+
+        function exportDoctorsPDF() {
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, 'LAPORAN DATA DOKTER');
+
+            // Summary
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Dokter: ${doctors.length}`, 20, yPosition);
+            yPosition += 15;
+
+            // Table
+            const tableData = doctors.map((doctor, index) => [
+                index + 1,
+                doctor.name || '-',
+                doctor.specialty || '-',
+                doctor.phone || '-',
+                doctor.email || '-'
+            ]);
+
+            doc.autoTable({
+                head: [['No', 'Nama', 'Spesialisasi', 'Telepon', 'Email']],
+                body: tableData,
+                startY: yPosition,
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                margin: { top: 40 },
+            });
+
+            createPDFFooter(doc, 1);
+            doc.save('laporan-data-dokter.pdf');
+        }
+
+        function exportMedicinesPDF() {
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, 'LAPORAN DATA OBAT');
+
+            // Summary
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Obat: ${medicines.length}`, 20, yPosition);
+            yPosition += 15;
+
+            // Calculate totals
+            const totalStock = medicines.reduce((sum, med) => sum + (med.stock || 0), 0);
+            const totalValue = medicines.reduce((sum, med) => sum + ((med.stock || 0) * (med.price || 0)), 0);
+
+            doc.setFontSize(10);
+            doc.text(`Total Stok: ${totalStock} unit`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Total Nilai: Rp ${totalValue.toLocaleString('id-ID')}`, 20, yPosition);
+            yPosition += 15;
+
+            // Table
+            const tableData = medicines.map((medicine, index) => [
+                index + 1,
+                medicine.name || '-',
+                medicine.type || '-',
+                medicine.stock || 0,
+                `Rp ${(medicine.price || 0).toLocaleString('id-ID')}`,
+                `Rp ${((medicine.stock || 0) * (medicine.price || 0)).toLocaleString('id-ID')}`
+            ]);
+
+            doc.autoTable({
+                head: [['No', 'Nama Obat', 'Tipe', 'Stok', 'Harga', 'Total Nilai']],
+                body: tableData,
+                startY: yPosition,
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 3,
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                columnStyles: {
+                    3: { halign: 'right' },
+                    4: { halign: 'right' },
+                    5: { halign: 'right' }
+                },
+                margin: { top: 40 },
+            });
+
+            createPDFFooter(doc, 1);
+            doc.save('laporan-data-obat.pdf');
+        }
+
+        function exportRecordsPDF() {
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, 'LAPORAN REKAM MEDIS');
+
+            // Summary
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Rekam Medis: ${records.length}`, 20, yPosition);
+            yPosition += 15;
+
+            // Table
+            const tableData = records.map((record, index) => [
+                index + 1,
+                record.record_date || '-',
+                record.patient_name || '-',
+                record.doctor_name || '-',
+                record.diagnosis || '-',
+                record.treatment || '-'
+            ]);
+
+            doc.autoTable({
+                head: [['No', 'Tanggal', 'Nama Pasien', 'Nama Dokter', 'Diagnosis', 'Treatment']],
+                body: tableData,
+                startY: yPosition,
+                styles: {
+                    fontSize: 7,
+                    cellPadding: 2,
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                margin: { top: 40 },
+            });
+
+            createPDFFooter(doc, 1);
+            doc.save('laporan-rekam-medis.pdf');
+        }
+
+        function exportCompleteReport() {
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, 'LAPORAN LENGKAP SISTEM REKAM MEDIS');
+            let pageNumber = 1;
+
+            // Executive Summary
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('RINGKASAN EKSEKUTIF', 20, yPosition);
+            yPosition += 15;
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            const summaryData = [
+                `Total Dokter: ${doctors.length}`,
+                `Total Pasien: ${patients.length}`,
+                `Total Obat: ${medicines.length}`,
+                `Total Rekam Medis: ${records.length}`,
+                `Tanggal Laporan: ${new Date().toLocaleDateString('id-ID')}`
+            ];
+
+            summaryData.forEach(item => {
+                doc.text(item, 25, yPosition);
+                yPosition += 8;
+            });
+
+            yPosition += 10;
+
+            // Doctors Summary
+            if (doctors.length > 0) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DATA DOKTER', 20, yPosition);
+                yPosition += 10;
+
+                const doctorData = doctors.map((doctor, index) => [
+                    index + 1,
+                    doctor.name || '-',
+                    doctor.specialty || '-',
+                    doctor.phone || '-'
+                ]);
+
+                doc.autoTable({
+                    head: [['No', 'Nama', 'Spesialisasi', 'Telepon']],
+                    body: doctorData,
+                    startY: yPosition,
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    headStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: { fillColor: [245, 245, 245] },
+                    margin: { top: 40 },
+                });
+
+                yPosition = doc.lastAutoTable.finalY + 15;
+            }
+
+            // Check if we need a new page
+            if (yPosition > 250) {
+                doc.addPage();
+                pageNumber++;
+                yPosition = 40;
+            }
+
+            // Patients Summary
+            if (patients.length > 0) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DATA PASIEN', 20, yPosition);
+                yPosition += 10;
+
+                const patientData = patients.map((patient, index) => [
+                    index + 1,
+                    patient.name || '-',
+                    patient.age || '-',
+                    patient.gender || '-',
+                    patient.phone || '-'
+                ]);
+
+                doc.autoTable({
+                    head: [['No', 'Nama', 'Usia', 'Jenis Kelamin', 'Telepon']],
+                    body: patientData,
+                    startY: yPosition,
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    headStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: { fillColor: [245, 245, 245] },
+                    margin: { top: 40 },
+                });
+
+                yPosition = doc.lastAutoTable.finalY + 15;
+            }
+
+            // Check if we need a new page
+            if (yPosition > 200) {
+                doc.addPage();
+                pageNumber++;
+                yPosition = 40;
+            }
+
+            // Medicines Summary
+            if (medicines.length > 0) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DATA OBAT', 20, yPosition);
+                yPosition += 10;
+
+                const medicineData = medicines.map((medicine, index) => [
+                    index + 1,
+                    medicine.name || '-',
+                    medicine.type || '-',
+                    medicine.stock || 0,
+                    `Rp ${(medicine.price || 0).toLocaleString('id-ID')}`
+                ]);
+
+                doc.autoTable({
+                    head: [['No', 'Nama Obat', 'Tipe', 'Stok', 'Harga']],
+                    body: medicineData,
+                    startY: yPosition,
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    headStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: { fillColor: [245, 245, 245] },
+                    columnStyles: {
+                        3: { halign: 'right' },
+                        4: { halign: 'right' }
+                    },
+                    margin: { top: 40 },
+                });
+
+                yPosition = doc.lastAutoTable.finalY + 15;
+            }
+
+            // Add footer to all pages
+            const totalPages = doc.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                createPDFFooter(doc, i);
+            }
+
+            doc.save('laporan-lengkap-sistem-rekam-medis.pdf');
+        }
+
+        // New functions for enhanced PDF features
+        function showPDFPreview() {
+            const modal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            modal.show();
+        }
+
+        function showDateFilter() {
+            // Set default dates (last 30 days)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+
+            const modal = new bootstrap.Modal(document.getElementById('dateFilterModal'));
+            modal.show();
+        }
+
+        function generateAndPreviewPDF() {
+            // Generate complete report and open in new tab for preview
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, 'PREVIEW - LAPORAN LENGKAP SISTEM REKAM MEDIS');
+
+            // Add preview watermark
+            doc.setTextColor(200, 200, 200);
+            doc.setFontSize(60);
+            doc.text('PREVIEW', 105, 150, { align: 'center', angle: 45 });
+            doc.setTextColor(0, 0, 0);
+
+            yPosition = 40;
+
+            // Quick summary
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('RINGKASAN DATA', 20, yPosition);
+            yPosition += 15;
+
+            const summaryItems = [
+                `Total Dokter: ${doctors.length}`,
+                `Total Pasien: ${patients.length}`,
+                `Total Obat: ${medicines.length}`,
+                `Total Rekam Medis: ${records.length}`,
+                `Tanggal Preview: ${new Date().toLocaleDateString('id-ID')}`
+            ];
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            summaryItems.forEach(item => {
+                doc.text(item, 25, yPosition);
+                yPosition += 8;
+            });
+
+            // Add sample data preview
+            yPosition += 20;
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SAMPLE DATA PREVIEW', 20, yPosition);
+            yPosition += 10;
+
+            // Sample patients
+            if (patients.length > 0) {
+                const samplePatients = patients.slice(0, 3);
+                const patientData = samplePatients.map((p, i) => [
+                    i + 1, p.name || '-', p.age || '-', p.phone || '-'
+                ]);
+
+                doc.autoTable({
+                    head: [['No', 'Nama Pasien', 'Usia', 'Telepon']],
+                    body: patientData,
+                    startY: yPosition,
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+                    margin: { top: 40 },
+                });
+            }
+
+            createPDFFooter(doc, 1);
+
+            // Open PDF in new tab for preview
+            const pdfBlob = doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            window.open(pdfUrl, '_blank');
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('pdfPreviewModal')).hide();
+        }
+
+        function exportFilteredRecords() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert('Silakan pilih tanggal mulai dan akhir!');
+                return;
+            }
+
+            // Filter records by date
+            const filteredRecords = records.filter(record => {
+                const recordDate = new Date(record.record_date);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                return recordDate >= start && recordDate <= end;
+            });
+
+            // Generate PDF with filtered data
+            const doc = new jsPDF();
+            let yPosition = createPDFHeader(doc, `LAPORAN REKAM MEDIS (${startDate} s/d ${endDate})`);
+
+            // Summary
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Rekam Medis dalam Periode: ${filteredRecords.length}`, 20, yPosition);
+            yPosition += 15;
+
+            if (filteredRecords.length === 0) {
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Tidak ada data rekam medis dalam periode yang dipilih.', 20, yPosition);
+            } else {
+                // Table
+                const tableData = filteredRecords.map((record, index) => [
+                    index + 1,
+                    record.record_date || '-',
+                    record.patient_name || '-',
+                    record.doctor_name || '-',
+                    record.diagnosis || '-',
+                    record.treatment || '-'
+                ]);
+
+                doc.autoTable({
+                    head: [['No', 'Tanggal', 'Nama Pasien', 'Nama Dokter', 'Diagnosis', 'Treatment']],
+                    body: tableData,
+                    startY: yPosition,
+                    styles: {
+                        fontSize: 7,
+                        cellPadding: 2,
+                    },
+                    headStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 245, 245]
+                    },
+                    margin: { top: 40 },
+                });
+            }
+
+            createPDFFooter(doc, 1);
+            doc.save(`laporan-rekam-medis-${startDate}-to-${endDate}.pdf`);
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('dateFilterModal')).hide();
+        }
+
+        // Utility function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR'
+            }).format(amount);
+        }
+
+        // Utility function to format date
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID');
+        }
+    </script>
+</body>
+</html>

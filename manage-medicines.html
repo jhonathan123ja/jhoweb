@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Data Obat - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Kelola Data Obat</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Kelola Data Obat</h2>
+        <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addMedicineModal">Tambah Obat</button>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Deskripsi</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="medicinesTable">
+                <!-- Medicines will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Medicine Modal -->
+    <div class="modal fade" id="addMedicineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Obat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMedicineForm">
+                        <div class="mb-3">
+                            <label for="medicineName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="medicineName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="medicineDescription" class="form-label">Deskripsi</label>
+                            <textarea class="form-control" id="medicineDescription" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Medicine Modal -->
+    <div class="modal fade" id="editMedicineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Obat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMedicineForm">
+                        <input type="hidden" id="editMedicineId">
+                        <div class="mb-3">
+                            <label for="editMedicineName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="editMedicineName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editMedicineDescription" class="form-label">Deskripsi</label>
+                            <textarea class="form-control" id="editMedicineDescription" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadMedicines);
+
+        function loadMedicines() {
+            const table = document.getElementById('medicinesTable');
+            table.innerHTML = '';
+            medicines.forEach(medicine => {
+                const row = `<tr>
+                    <td>${medicine.id}</td>
+                    <td>${medicine.name}</td>
+                    <td>${medicine.description}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editMedicine(${medicine.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMedicine(${medicine.id})">Hapus</button>
+                    </td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+
+        document.getElementById('addMedicineForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('medicineName').value;
+            const description = document.getElementById('medicineDescription').value;
+            addMedicine(name, description);
+            loadMedicines();
+            bootstrap.Modal.getInstance(document.getElementById('addMedicineModal')).hide();
+            this.reset();
+        });
+
+        function editMedicine(id) {
+            const medicine = medicines.find(m => m.id === id);
+            if (medicine) {
+                document.getElementById('editMedicineId').value = medicine.id;
+                document.getElementById('editMedicineName').value = medicine.name;
+                document.getElementById('editMedicineDescription').value = medicine.description;
+                new bootstrap.Modal(document.getElementById('editMedicineModal')).show();
+            }
+        }
+
+        document.getElementById('editMedicineForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editMedicineId').value);
+            const name = document.getElementById('editMedicineName').value;
+            const description = document.getElementById('editMedicineDescription').value;
+
+            const index = medicines.findIndex(m => m.id === id);
+            if (index !== -1) {
+                medicines[index] = { ...medicines[index], name, description };
+                saveData();
+                loadMedicines();
+                bootstrap.Modal.getInstance(document.getElementById('editMedicineModal')).hide();
+            }
+        });
+
+        function deleteMedicine(id) {
+            if (confirm('Hapus obat ini?')) {
+                medicines = medicines.filter(m => m.id !== id);
+                saveData();
+                loadMedicines();
+            }
+        }
+    </script>
+</body>
+</html>

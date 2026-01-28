@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Rekam Medis - Dokter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="#">Tambah Rekam Medis</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="doctor-dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Tambah Rekam Medis</h2>
+        <form id="addRecordForm">
+            <div class="mb-3">
+                <label for="patientSelect" class="form-label">Pasien</label>
+                <select class="form-control" id="patientSelect" required>
+                    <option value="">Pilih Pasien</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="doctorSelect" class="form-label">Dokter</label>
+                <select class="form-control" id="doctorSelect" required>
+                    <option value="">Pilih Dokter</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="diagnosis" class="form-label">Diagnosis</label>
+                <textarea class="form-control" id="diagnosis" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="treatment" class="form-label">Treatment</label>
+                <textarea class="form-control" id="treatment" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="medicines" class="form-label">Obat Digunakan</label>
+                <textarea class="form-control" id="medicines" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== ADD RECORD PAGE LOADED ===');
+            console.log('Patients:', patients);
+            console.log('Doctors:', doctors);
+            console.log('Records:', records);
+            
+            try {
+                checkAuth();
+            } catch(e) {
+                console.warn('checkAuth not available');
+            }
+            
+            // Load patients
+            const patientSelect = document.getElementById('patientSelect');
+            if (patientSelect) {
+                patients.forEach((p, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = p.name || 'Unknown';
+                    patientSelect.appendChild(option);
+                });
+            }
+            
+            // Load doctors
+            const doctorSelect = document.getElementById('doctorSelect');
+            if (doctorSelect) {
+                doctors.forEach((d, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = d.name || 'Unknown';
+                    doctorSelect.appendChild(option);
+                });
+            }
+            
+            // Setup form submit
+            setupRecordForm();
+        });
+
+        function setupRecordForm() {
+            const form = document.getElementById('addRecordForm');
+            if (!form) {
+                console.error('addRecordForm not found');
+                return;
+            }
+            
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                console.log('=== FORM SUBMITTED ===');
+                
+                const patientSelect = document.getElementById('patientSelect');
+                const doctorSelect = document.getElementById('doctorSelect');
+                const diagnosis = document.getElementById('diagnosis');
+                const treatment = document.getElementById('treatment');
+                const medicines = document.getElementById('medicines');
+                
+                const patientIndex = patientSelect.value;
+                const doctorIndex = doctorSelect.value;
+                
+                console.log('Form data:', {
+                    patientIndex,
+                    doctorIndex,
+                    diagnosis: diagnosis.value,
+                    treatment: treatment.value,
+                    medicines: medicines.value
+                });
+                
+                // Validasi
+                if (!patientIndex) {
+                    alert('Pilih pasien!');
+                    return;
+                }
+                if (!doctorIndex) {
+                    alert('Pilih dokter!');
+                    return;
+                }
+                if (!diagnosis.value.trim()) {
+                    alert('Diagnosis harus diisi!');
+                    return;
+                }
+                if (!treatment.value.trim()) {
+                    alert('Treatment harus diisi!');
+                    return;
+                }
+                if (!medicines.value.trim()) {
+                    alert('Obat yang digunakan harus diisi!');
+                    return;
+                }
+                
+                // Ambil data pasien dan dokter
+                const patient = patients[parseInt(patientIndex)];
+                const doctor = doctors[parseInt(doctorIndex)];
+                
+                if (!patient) {
+                    alert('Pasien tidak ditemukan');
+                    return;
+                }
+                if (!doctor) {
+                    alert('Dokter tidak ditemukan');
+                    return;
+                }
+                
+                console.log('Patient:', patient);
+                console.log('Doctor:', doctor);
+                
+                // Buat record baru
+                const newRecord = {
+                    date: new Date().toISOString().split('T')[0],
+                    patient_name: patient.name,
+                    doctor_name: doctor.name,
+                    diagnosis: diagnosis.value.trim(),
+                    treatment: treatment.value.trim(),
+                    medicines: medicines.value.trim()
+                };
+                
+                console.log('New record:', newRecord);
+                console.log('Records before:', records.length);
+                
+                // Tambah ke array
+                records.push(newRecord);
+                console.log('Records after:', records.length);
+                
+                // Simpan
+                try {
+                    saveData();
+                    console.log('✓ Data saved');
+                } catch(e) {
+                    console.error('❌ Save error:', e);
+                    alert('Error menyimpan: ' + e.message);
+                    return;
+                }
+                
+                // Reset form
+                form.reset();
+                
+                alert('✓ Rekam medis berhasil ditambahkan!');
+                
+                // Redirect ke doctor dashboard
+                setTimeout(function() {
+                    window.location.href = 'doctor-dashboard.html';
+                }, 500);
+            };
+        }
+    </script>
+</body>
+</html>

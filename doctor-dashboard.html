@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Dokter - Rekam Medis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, #4c63d2 0%, #6b46c1 100%) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-bottom: 3px solid #3730a3;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            min-height: 100vh;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            border-right: 4px solid #4c63d2;
+            padding: 30px 20px;
+        }
+
+        .sidebar h4 {
+            color: #4c63d2;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .sidebar .nav-link {
+            margin-bottom: 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            padding: 15px 20px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .sidebar .nav-link:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(76, 99, 210, 0.3);
+            background: linear-gradient(135deg, #4c63d2 0%, #6b46c1 100%);
+            color: white !important;
+            border-color: #3730a3;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .main-content {
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, #4c63d2 0%, #6b46c1 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .welcome-header h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .welcome-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4c63d2, #6b46c1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        .stat-card .card-body {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .stat-card i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #4c63d2, #6b46c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card h4 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #6b7280;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .schedule-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .schedule-card .card-header {
+            background: linear-gradient(135deg, #4c63d2 0%, #6b46c1 100%);
+            color: white;
+            padding: 20px 30px;
+            border: none;
+        }
+
+        .schedule-card .card-header h5 {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .schedule-card .btn-light {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .schedule-card .btn-light:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #4c63d2, #6b46c1);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #4c63d2, #6b46c1);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            border: none;
+        }
+
+        .modal-title {
+            font-weight: bold;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card, .schedule-card, .welcome-header {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .schedule-card { animation-delay: 0.4s; }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 280px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .welcome-header h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-stethoscope me-2"></i>
+                Rekam Medis - Dashboard Dokter
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <h4><i class="fas fa-user-md me-2"></i>Menu Dokter</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="view-patients.html" class="nav-link">
+                            <i class="fas fa-users"></i> Lihat Pasien
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="add-record.html" class="nav-link">
+                            <i class="fas fa-plus-circle"></i> Tambah Rekam Medis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="edit-record.html" class="nav-link">
+                            <i class="fas fa-edit"></i> Edit Rekam Medis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="patient-history.html" class="nav-link">
+                            <i class="fas fa-history"></i> Riwayat Pasien
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 main-content">
+                <!-- Welcome Header -->
+                <div class="welcome-header">
+                    <i class="fas fa-user-md fa-3x mb-3"></i>
+                    <h2>Selamat Datang, Dokter!</h2>
+                    <p>Kelola jadwal praktik, pantau pasien, dan kelola rekam medis dengan mudah</p>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <i class="fas fa-users"></i>
+                                <h4 id="patientCount">0</h4>
+                                <p>Total Pasien</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <i class="fas fa-file-medical"></i>
+                                <h4 id="recordCount">0</h4>
+                                <p>Rekam Medis</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-check"></i>
+                                <h4 id="todayRecords">0</h4>
+                                <p>Rekam Hari Ini</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jadwal Praktik -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card schedule-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Jadwal Praktik</h5>
+                                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#editScheduleModal">
+                                    <i class="fas fa-edit me-1"></i>Edit Jadwal
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th><i class="fas fa-calendar-day me-1"></i>Hari</th>
+                                                <th><i class="fas fa-clock me-1"></i>Jam Praktik</th>
+                                                <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                                                <th><i class="fas fa-map-marker-alt me-1"></i>Lokasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scheduleTable">
+                                            <!-- Jadwal akan diisi oleh JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Jadwal -->
+    <div class="modal fade" id="editScheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-calendar-edit me-2"></i>Edit Jadwal Praktik</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-calendar-day me-1"></i>Pilih Hari</label>
+                                    <select class="form-select" id="scheduleDay" required>
+                                        <option value="">Pilih Hari</option>
+                                        <option value="Senin">Senin</option>
+                                        <option value="Selasa">Selasa</option>
+                                        <option value="Rabu">Rabu</option>
+                                        <option value="Kamis">Kamis</option>
+                                        <option value="Jumat">Jumat</option>
+                                        <option value="Sabtu">Sabtu</option>
+                                        <option value="Minggu">Minggu</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-info-circle me-1"></i>Status</label>
+                                    <select class="form-select" id="scheduleStatus" required>
+                                        <option value="">Pilih Status</option>
+                                        <option value="Aktif">Aktif</option>
+                                        <option value="Terbatas">Terbatas</option>
+                                        <option value="Libur">Libur</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-clock me-1"></i>Jam Mulai</label>
+                                    <input type="time" class="form-control" id="startTime">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-clock me-1"></i>Jam Selesai</label>
+                                    <input type="time" class="form-control" id="endTime">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Lokasi</label>
+                            <input type="text" class="form-control" id="scheduleLocation" placeholder="Masukkan lokasi praktik">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveSchedule()">
+                        <i class="fas fa-save me-1"></i>Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        // Data jadwal praktik
+        let doctorSchedule = JSON.parse(localStorage.getItem('doctorSchedule')) || {
+            'Senin': { time: '08:00 - 16:00', status: 'Aktif', location: 'Ruang Praktik A' },
+            'Selasa': { time: '08:00 - 16:00', status: 'Aktif', location: 'Ruang Praktik A' },
+            'Rabu': { time: '08:00 - 16:00', status: 'Aktif', location: 'Ruang Praktik A' },
+            'Kamis': { time: '08:00 - 16:00', status: 'Aktif', location: 'Ruang Praktik A' },
+            'Jumat': { time: '08:00 - 16:00', status: 'Aktif', location: 'Ruang Praktik A' },
+            'Sabtu': { time: '09:00 - 14:00', status: 'Terbatas', location: 'Ruang Praktik B' },
+            'Minggu': { time: '-', status: 'Libur', location: '-' }
+        };
+
+        function saveScheduleData() {
+            localStorage.setItem('doctorSchedule', JSON.stringify(doctorSchedule));
+        }
+
+        function loadSchedule() {
+            const tableBody = document.getElementById('scheduleTable');
+            tableBody.innerHTML = '';
+
+            const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+
+            days.forEach(day => {
+                const schedule = doctorSchedule[day];
+                let statusBadge = '';
+
+                switch(schedule.status) {
+                    case 'Aktif':
+                        statusBadge = '<span class="badge bg-success"><i class="fas fa-check me-1"></i>Aktif</span>';
+                        break;
+                    case 'Terbatas':
+                        statusBadge = '<span class="badge bg-warning"><i class="fas fa-exclamation-triangle me-1"></i>Terbatas</span>';
+                        break;
+                    case 'Libur':
+                        statusBadge = '<span class="badge bg-secondary"><i class="fas fa-moon me-1"></i>Libur</span>';
+                        break;
+                }
+
+                const row = `
+                    <tr>
+                        <td><strong>${day}</strong></td>
+                        <td>${schedule.time}</td>
+                        <td>${statusBadge}</td>
+                        <td>${schedule.location}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function saveSchedule() {
+            const day = document.getElementById('scheduleDay').value;
+            const status = document.getElementById('scheduleStatus').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const location = document.getElementById('scheduleLocation').value;
+
+            if (!day || !status) {
+                alert('Harap pilih hari dan status!');
+                return;
+            }
+
+            let time = '-';
+            if (status !== 'Libur' && startTime && endTime) {
+                time = `${startTime} - ${endTime}`;
+            }
+
+            doctorSchedule[day] = {
+                time: time,
+                status: status,
+                location: status === 'Libur' ? '-' : location
+            };
+
+            saveScheduleData();
+            loadSchedule();
+
+            // Reset form
+            document.getElementById('scheduleForm').reset();
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editScheduleModal'));
+            modal.hide();
+
+            // Show success message
+            showToast('Jadwal berhasil disimpan!', 'success');
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Handle status change to show/hide time inputs
+        document.getElementById('scheduleStatus').addEventListener('change', function() {
+            const status = this.value;
+            const timeInputs = document.querySelectorAll('#startTime, #endTime');
+
+            if (status === 'Libur') {
+                timeInputs.forEach(input => input.disabled = true);
+                document.getElementById('scheduleLocation').disabled = true;
+            } else {
+                timeInputs.forEach(input => input.disabled = false);
+                document.getElementById('scheduleLocation').disabled = false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('patientCount').textContent = patients.length;
+            document.getElementById('recordCount').textContent = records.length;
+            const today = new Date().toDateString();
+            const todayRecordsCount = records.filter(r => new Date(r.date).toDateString() === today).length;
+            document.getElementById('todayRecords').textContent = todayRecordsCount;
+
+            // Load jadwal praktik
+            loadSchedule();
+        });
+    </script>
+</body>
+</html>

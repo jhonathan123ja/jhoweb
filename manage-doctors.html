@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Data Dokter - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Kelola Data Dokter</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Kelola Data Dokter</h2>
+        <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addDoctorModal">Tambah Dokter</button>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Spesialisasi</th>
+                    <th>Telepon</th>
+                    <th>Email</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="doctorsTable">
+                <!-- Doctors will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Doctor Modal -->
+    <div class="modal fade" id="addDoctorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Dokter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDoctorForm">
+                        <div class="mb-3">
+                            <label for="doctorName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="doctorName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="doctorSpecialty" class="form-label">Spesialisasi</label>
+                            <input type="text" class="form-control" id="doctorSpecialty" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="doctorPhone" class="form-label">Telepon</label>
+                            <input type="text" class="form-control" id="doctorPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="doctorEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="doctorEmail">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="addDoctorBtn">Simpan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Doctor Modal -->
+    <div class="modal fade" id="editDoctorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Dokter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editDoctorForm">
+                        <input type="hidden" id="editDoctorId">
+                        <div class="mb-3">
+                            <label for="editDoctorName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="editDoctorName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDoctorSpecialty" class="form-label">Spesialisasi</label>
+                            <input type="text" class="form-control" id="editDoctorSpecialty" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDoctorPhone" class="form-label">Telepon</label>
+                            <input type="text" class="form-control" id="editDoctorPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDoctorEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editDoctorEmail">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="editDoctorBtn">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        // Tunggu semua resource dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== MANAGE DOCTORS PAGE LOADED ===');
+            console.log('Current doctors in memory:', doctors);
+            console.log('Current doctors in localStorage:', localStorage.getItem('doctors'));
+            
+            // Check auth
+            try {
+                checkAuth();
+            } catch(e) {
+                console.warn('checkAuth not available');
+            }
+            
+            // Load existing doctors
+            loadDoctorsTable();
+            
+            // Setup button handler
+            setupAddDoctorButton();
+            setupEditDoctorButton();
+        });
+        
+        function setupAddDoctorButton() {
+            const btn = document.getElementById('addDoctorBtn');
+            if (!btn) {
+                console.error('❌ addDoctorBtn not found');
+                return;
+            }
+            
+            btn.onclick = function(e) {
+                console.log('=== ADD DOCTOR BUTTON CLICKED ===');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const nameInput = document.getElementById('doctorName');
+                const specialtyInput = document.getElementById('doctorSpecialty');
+                const phoneInput = document.getElementById('doctorPhone');
+                const emailInput = document.getElementById('doctorEmail');
+                
+                const name = nameInput.value.trim();
+                const specialty = specialtyInput.value.trim();
+                const phone = phoneInput.value.trim();
+                const email = emailInput.value.trim();
+                
+                console.log('Form data:', {name, specialty, phone, email});
+                
+                // Validasi
+                if (!name) {
+                    alert('Nama dokter harus diisi!');
+                    return;
+                }
+                if (!specialty) {
+                    alert('Spesialisasi harus diisi!');
+                    return;
+                }
+                
+                // Tambah ke array
+                console.log('Doctors before:', doctors.length);
+                doctors.push({
+                    name: name,
+                    specialty: specialty,
+                    phone: phone,
+                    email: email
+                });
+                console.log('Doctors after:', doctors.length);
+                console.log('Doctor array now:', doctors);
+                
+                // Simpan ke localStorage
+                try {
+                    localStorage.setItem('doctors', JSON.stringify(doctors));
+                    console.log('✓ Saved to localStorage');
+                    console.log('Verify:', JSON.parse(localStorage.getItem('doctors')));
+                } catch(e) {
+                    console.error('❌ Error saving to localStorage:', e);
+                    alert('Error menyimpan data: ' + e.message);
+                    return;
+                }
+                
+                // Reload tabel
+                loadDoctorsTable();
+                
+                // Clear form
+                nameInput.value = '';
+                specialtyInput.value = '';
+                phoneInput.value = '';
+                emailInput.value = '';
+                
+                // Close modal
+                const modal = document.getElementById('addDoctorModal');
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+                
+                alert('✓ Dokter berhasil ditambahkan!');
+            };
+        }
+        
+        function setupEditDoctorButton() {
+            const btn = document.getElementById('editDoctorBtn');
+            if (!btn) {
+                console.error('❌ editDoctorBtn not found');
+                return;
+            }
+            
+            btn.onclick = function(e) {
+                console.log('=== EDIT DOCTOR BUTTON CLICKED ===');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const index = parseInt(document.getElementById('editDoctorId').value);
+                const name = document.getElementById('editDoctorName').value.trim();
+                const specialty = document.getElementById('editDoctorSpecialty').value.trim();
+                const phone = document.getElementById('editDoctorPhone').value.trim();
+                const email = document.getElementById('editDoctorEmail').value.trim();
+                
+                if (!name || !specialty) {
+                    alert('Nama dan spesialisasi harus diisi!');
+                    return;
+                }
+                
+                if (index >= 0 && index < doctors.length) {
+                    doctors[index] = {
+                        name: name,
+                        specialty: specialty,
+                        phone: phone,
+                        email: email
+                    };
+                    
+                    localStorage.setItem('doctors', JSON.stringify(doctors));
+                    loadDoctorsTable();
+                    
+                    const modal = document.getElementById('editDoctorModal');
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) {
+                        bsModal.hide();
+                    }
+                    
+                    alert('✓ Dokter berhasil diupdate!');
+                }
+            };
+        }
+    </script>
+</body>
+</html>

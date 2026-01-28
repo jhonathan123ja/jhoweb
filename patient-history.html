@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lihat Riwayat Pasien - Dokter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="#">Lihat Riwayat Pasien</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="doctor-dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Riwayat Pasien</h2>
+        <div class="mb-3">
+            <label for="patientSelect" class="form-label">Pilih Pasien</label>
+            <select class="form-control" id="patientSelect">
+                <option value="">Pilih Pasien</option>
+            </select>
+        </div>
+        <table class="table table-striped" id="historyTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Dokter</th>
+                    <th>Diagnosis</th>
+                    <th>Treatment</th>
+                    <th>Obat</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody">
+                <!-- History will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const patientSelect = document.getElementById('patientSelect');
+            patients.forEach(p => {
+                patientSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            });
+            patientSelect.addEventListener('change', loadHistory);
+        });
+
+        function loadHistory() {
+            const patientId = document.getElementById('patientSelect').value;
+            const table = document.getElementById('historyTable');
+            const body = document.getElementById('historyBody');
+            if (!patientId) {
+                table.style.display = 'none';
+                return;
+            }
+            table.style.display = 'table';
+            body.innerHTML = '';
+            const patientRecords = records.filter(r => r.patientId == patientId);
+            patientRecords.forEach(record => {
+                const doctor = doctors.find(d => d.id === record.doctorId);
+                const row = `<tr>
+                    <td>${new Date(record.date).toLocaleDateString()}</td>
+                    <td>${doctor ? doctor.name : 'Unknown'}</td>
+                    <td>${record.diagnosis}</td>
+                    <td>${record.treatment}</td>
+                    <td>${record.medicinesUsed}</td>
+                </tr>`;
+                body.innerHTML += row;
+            });
+        }
+    </script>
+</body>
+</html>

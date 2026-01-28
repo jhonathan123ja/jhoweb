@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Data Pasien - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Kelola Data Pasien</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Kelola Data Pasien</h2>
+        <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addPatientModal">Tambah Pasien</button>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Usia</th>
+                    <th>Alamat</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="patientsTable">
+                <!-- Patients will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Patient Modal -->
+    <div class="modal fade" id="addPatientModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Pasien</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addPatientForm">
+                        <div class="mb-3">
+                            <label for="patientName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="patientName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientAge" class="form-label">Usia</label>
+                            <input type="number" class="form-control" id="patientAge" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientAddress" class="form-label">Alamat</label>
+                            <textarea class="form-control" id="patientAddress" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Patient Modal -->
+    <div class="modal fade" id="editPatientModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Pasien</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPatientForm">
+                        <input type="hidden" id="editPatientId">
+                        <div class="mb-3">
+                            <label for="editPatientName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="editPatientName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPatientAge" class="form-label">Usia</label>
+                            <input type="number" class="form-control" id="editPatientAge" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPatientAddress" class="form-label">Alamat</label>
+                            <textarea class="form-control" id="editPatientAddress" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadPatients);
+
+        function loadPatients() {
+            const table = document.getElementById('patientsTable');
+            table.innerHTML = '';
+            patients.forEach(patient => {
+                const row = `<tr>
+                    <td>${patient.id}</td>
+                    <td>${patient.name}</td>
+                    <td>${patient.age}</td>
+                    <td>${patient.address}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editPatient(${patient.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePatient(${patient.id})">Hapus</button>
+                    </td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+
+        document.getElementById('addPatientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('patientName').value;
+            const age = document.getElementById('patientAge').value;
+            const address = document.getElementById('patientAddress').value;
+            addPatient(name, age, address);
+            loadPatients();
+            bootstrap.Modal.getInstance(document.getElementById('addPatientModal')).hide();
+            this.reset();
+        });
+
+        function editPatient(id) {
+            const patient = patients.find(p => p.id === id);
+            if (patient) {
+                document.getElementById('editPatientId').value = patient.id;
+                document.getElementById('editPatientName').value = patient.name;
+                document.getElementById('editPatientAge').value = patient.age;
+                document.getElementById('editPatientAddress').value = patient.address;
+                new bootstrap.Modal(document.getElementById('editPatientModal')).show();
+            }
+        }
+
+        document.getElementById('editPatientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editPatientId').value);
+            const name = document.getElementById('editPatientName').value;
+            const age = document.getElementById('editPatientAge').value;
+            const address = document.getElementById('editPatientAddress').value;
+
+            const index = patients.findIndex(p => p.id === id);
+            if (index !== -1) {
+                patients[index] = { ...patients[index], name, age, address };
+                saveData();
+                loadPatients();
+                bootstrap.Modal.getInstance(document.getElementById('editPatientModal')).hide();
+            }
+        });
+
+        function deletePatient(id) {
+            if (confirm('Hapus pasien ini?')) {
+                patients = patients.filter(p => p.id !== id);
+                saveData();
+                loadPatients();
+            }
+        }
+    </script>
+</body>
+</html>

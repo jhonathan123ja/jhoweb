@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Rekam Medis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Rekam Medis - Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 bg-light sidebar">
+                <h4 class="text-center mt-4 mb-4">Menu Admin</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="manage-doctors.html" class="nav-link btn btn-outline-primary w-100">
+                            <i class="fas fa-user-md"></i> Kelola Dokter
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="manage-patients.html" class="nav-link btn btn-outline-success w-100">
+                            <i class="fas fa-users"></i> Kelola Pasien
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="manage-medicines.html" class="nav-link btn btn-outline-warning w-100">
+                            <i class="fas fa-pills"></i> Kelola Obat
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="view-records.html" class="nav-link btn btn-outline-info w-100">
+                            <i class="fas fa-file-medical"></i> Lihat Rekam Medis
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="container mt-4">
+                    <h2 class="mb-4">Dashboard Admin</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card text-center stat-card">
+                                <div class="card-body">
+                                    <i class="fas fa-user-md fa-2x text-primary mb-2"></i>
+                                    <h4 id="doctorCount">0</h4>
+                                    <p class="mb-0">Dokter</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center stat-card">
+                                <div class="card-body">
+                                    <i class="fas fa-users fa-2x text-success mb-2"></i>
+                                    <h4 id="patientCount">0</h4>
+                                    <p class="mb-0">Pasien</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center stat-card">
+                                <div class="card-body">
+                                    <i class="fas fa-pills fa-2x text-warning mb-2"></i>
+                                    <h4 id="medicineCount">0</h4>
+                                    <p class="mb-0">Obat</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center stat-card">
+                                <div class="card-body">
+                                    <i class="fas fa-file-medical fa-2x text-info mb-2"></i>
+                                    <h4 id="recordCount">0</h4>
+                                    <p class="mb-0">Rekam Medis</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('doctorCount').textContent = doctors.length;
+            document.getElementById('patientCount').textContent = patients.length;
+            document.getElementById('medicineCount').textContent = medicines.length;
+            document.getElementById('recordCount').textContent = records.length;
+        });
+    </script>
+</body>
+</html>

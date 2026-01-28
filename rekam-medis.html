@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekam Medis - Rekam Medis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Semua Rekam Medis</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Semua Rekam Medis</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Pasien</th>
+                    <th>Dokter</th>
+                    <th>Diagnosis</th>
+                    <th>Treatment</th>
+                    <th>Obat</th>
+                    <th>Tanggal</th>
+                </tr>
+            </thead>
+            <tbody id="recordsTable">
+                <!-- Records will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadRecords);
+
+        function loadRecords() {
+            const table = document.getElementById('recordsTable');
+            table.innerHTML = '';
+            records.forEach(record => {
+                const patient = patients.find(p => p.id === record.patientId);
+                const doctor = doctors.find(d => d.id === record.doctorId);
+                const row = `<tr>
+                    <td>${record.id}</td>
+                    <td>${patient ? patient.name : 'Unknown'}</td>
+                    <td>${doctor ? doctor.name : 'Unknown'}</td>
+                    <td>${record.diagnosis}</td>
+                    <td>${record.treatment}</td>
+                    <td>${record.medicinesUsed}</td>
+                    <td>${new Date(record.date).toLocaleDateString()}</td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+    </script>
+</body>
+</html>

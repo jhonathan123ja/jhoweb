@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Rekam Medis - Dokter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="#">Edit Rekam Medis</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="doctor-dashboard.html">Kembali</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Edit Rekam Medis</h2>
+        <div id="recordsList">
+            <!-- Records will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Edit Record Modal -->
+    <div class="modal fade" id="editRecordModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Rekam Medis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRecordForm">
+                        <input type="hidden" id="editRecordId">
+                        <div class="mb-3">
+                            <label for="editPatientSelect" class="form-label">Pasien</label>
+                            <select class="form-control" id="editPatientSelect" required>
+                                <option value="">Pilih Pasien</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDoctorSelect" class="form-label">Dokter</label>
+                            <select class="form-control" id="editDoctorSelect" required>
+                                <option value="">Pilih Dokter</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDiagnosis" class="form-label">Diagnosis</label>
+                            <textarea class="form-control" id="editDiagnosis" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTreatment" class="form-label">Treatment</label>
+                            <textarea class="form-control" id="editTreatment" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editMedicines" class="form-label">Obat Digunakan</label>
+                            <textarea class="form-control" id="editMedicines" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadRecords);
+
+        function loadRecords() {
+            const container = document.getElementById('recordsList');
+            container.innerHTML = '<h3>Daftar Rekam Medis</h3>';
+            const table = document.createElement('table');
+            table.className = 'table table-striped';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pasien</th>
+                        <th>Dokter</th>
+                        <th>Diagnosis</th>
+                        <th>Tanggal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTable"></tbody>
+            `;
+            container.appendChild(table);
+            const tbody = document.getElementById('recordsTable');
+            records.forEach(record => {
+                const patient = patients.find(p => p.id === record.patientId);
+                const doctor = doctors.find(d => d.id === record.doctorId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.id}</td>
+                    <td>${patient ? patient.name : 'Unknown'}</td>
+                    <td>${doctor ? doctor.name : 'Unknown'}</td>
+                    <td>${record.diagnosis}</td>
+                    <td>${new Date(record.date).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editRecord(${record.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteRecord(${record.id})">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function editRecord(id) {
+            const record = records.find(r => r.id === id);
+            if (record) {
+                document.getElementById('editRecordId').value = record.id;
+                document.getElementById('editDiagnosis').value = record.diagnosis;
+                document.getElementById('editTreatment').value = record.treatment;
+                document.getElementById('editMedicines').value = record.medicinesUsed;
+
+                const patientSelect = document.getElementById('editPatientSelect');
+                const doctorSelect = document.getElementById('editDoctorSelect');
+                patientSelect.innerHTML = '<option value="">Pilih Pasien</option>';
+                doctorSelect.innerHTML = '<option value="">Pilih Dokter</option>';
+
+                patients.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.name;
+                    if (p.id === record.patientId) option.selected = true;
+                    patientSelect.appendChild(option);
+                });
+
+                doctors.forEach(d => {
+                    const option = document.createElement('option');
+                    option.value = d.id;
+                    option.textContent = d.name;
+                    if (d.id === record.doctorId) option.selected = true;
+                    doctorSelect.appendChild(option);
+                });
+
+                new bootstrap.Modal(document.getElementById('editRecordModal')).show();
+            }
+        }
+
+        document.getElementById('editRecordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editRecordId').value);
+            const patientId = document.getElementById('editPatientSelect').value;
+            const doctorId = document.getElementById('editDoctorSelect').value;
+            const diagnosis = document.getElementById('editDiagnosis').value;
+            const treatment = document.getElementById('editTreatment').value;
+            const medicinesUsed = document.getElementById('editMedicines').value;
+
+            const index = records.findIndex(r => r.id === id);
+            if (index !== -1) {
+                records[index] = { ...records[index], patientId, doctorId, diagnosis, treatment, medicinesUsed };
+                saveData();
+                loadRecords();
+                bootstrap.Modal.getInstance(document.getElementById('editRecordModal')).hide();
+                alert('Rekam medis berhasil diupdate!');
+            }
+        });
+
+        function deleteRecord(id) {
+            if (confirm('Hapus rekam medis ini?')) {
+                records = records.filter(r => r.id !== id);
+                saveData();
+                loadRecords();
+            }
+        }
+    </script>
+</body>
+</html>
